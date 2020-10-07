@@ -48,6 +48,10 @@ function Invoke-SMBAutoBrute
 	The domain setting that specifies the number of bad login attempts before the account locks.
 	To discover this, open a command prompt from a domain joined machine and run "net accounts".
 	
+.PARAMETER Domain
+
+	The Domain which you want to set as the context, for example lab.local.
+	
 .PARAMETER Delay
 
 	The delay time (in milliseconds) between each brute attempt. Default 100.
@@ -70,6 +74,9 @@ function Invoke-SMBAutoBrute
 
         [parameter(Mandatory = $True)]
         [String] $LockoutThreshold,
+	
+	[parameter(Mandatory = $True)]
+	[String] $Domain,
 
         [parameter(Mandatory = $False)]
         [int] $Delay,
@@ -90,10 +97,11 @@ function Invoke-SMBAutoBrute
 
         Try {Add-Type -AssemblyName System.DirectoryServices}
         Catch {Write-Error $Error[0].ToString() + $Error[0].InvocationInfo.PositionMessage}
+	
 
         function Get-PDCe()
         {
-            $context = new-object System.DirectoryServices.ActiveDirectory.DirectoryContext("Domain","lab.com")
+            $context = new-object System.DirectoryServices.ActiveDirectory.DirectoryContext("Domain",$domain)
             $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($context)
             return $domain.pdcRoleOwner
         }
