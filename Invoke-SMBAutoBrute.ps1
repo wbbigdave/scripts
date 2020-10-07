@@ -67,8 +67,8 @@ function Invoke-SMBAutoBrute
 #>
     [CmdletBinding(defaultParameterSet = "PassList")] Param(
     
-        [Parameter(ParameterSetName = "PassFile", mandatory=$false]
-	[Parameter(ParameterSetName = "PassList", mandatory=$true]
+        [Parameter(ParameterSetName = "PassFile", mandatory=$false)]
+	[Parameter(ParameterSetName = "PassList", mandatory=$true)]
 	[String]$Passwordlist,
 	
         [Parameter(Mandatory = $False)]
