@@ -264,8 +264,8 @@ function Invoke-SMBAutoBrute
                             $validaccounts.Add($userid, $p)
                             if ($StopOnSuccess.IsPresent)
                             {
-				Write-Host "[*] StopOnSuccess. Exiting.`n"
-                                throw
+		                		Write-Host "[*] StopOnSuccess. Exiting.`n"
+                                
                             }
                         }
                         else
