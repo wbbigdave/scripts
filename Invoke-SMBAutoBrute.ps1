@@ -65,7 +65,7 @@ function Invoke-SMBAutoBrute
 	The script will exit after the first successful authentication.
 
 #>
-    [CmdletBinding(defaultParameterSet = "PassList")] Param(
+    [CmdletBinding(DefaultParameterSetName = "PassList")] Param(
     
         [Parameter(ParameterSetName = "PassFile", mandatory=$false)]
     	[Parameter(ParameterSetName = "PassList", mandatory=$true)]
